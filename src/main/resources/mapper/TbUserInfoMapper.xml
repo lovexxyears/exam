@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanou.dao.UserInfoDao">
+
+    <resultMap id="UserInfo" type="com.lanou.entity.UserInfo">
+        <id property="id" column="id"></id>
+        <result property="realName" column="realName"></result>
+        <result property="phone" column="phone"></result>
+        <result property="major" column="major"></result>
+
+        <!--        <result property="uid" column="uid"></result>-->
+
+    </resultMap>
+    <select id="queryTeachersInfo" resultMap="UserInfo">
+        SELECT i.realName,
+               i.phone,
+               i.major,
+               i.uid
+        FROM tb_user_info as i
+        WHERE i.uid in (
+            select id
+            from tb_user
+            where rid = 3
+        )
+    </select>
+
+    <insert id="insertUserInfo">
+        insert into tb_user_info(realName, phone, major, uid)
+        values (#{info.realName},
+                #{info.phone},
+                #{info.major},
+                #{info.tbUser.id})
+    </insert>
+
+
+    <resultMap id="studentsInfo" type="com.lanou.entity.UserInfo">
+        <id property="id" column="id"/>
+        <result property="realName" column="realName"/>
+        <result property="major" column="major"/>
+        <result property="phone" column="phone"/>
+        <association property="tbUser" javaType="com.lanou.entity.TbUser">
+            <id property="id" column="uid"/>
+            <result property="account" column="account"/>
+        </association>
+        <association property="tbClazz" javaType="com.lanou.entity.TbClazz">
+            <id property="id" column="cid"></id>
+            <result property="clazzName" column="clazzname"></result>
+            <!--            <result property="major" column="major"/>-->
+            <!--            <result property="status" column="status"/>-->
+            <!--            <result property="start" column=" start"/>-->
+            <!--            <result property="count" column=""/>-->
+            <!--            <result property="per" column=""/>-->
+            <!--            <result property="perid" column=""/>-->
+            <!--            <result property="students" column=""/>-->
+        </association>
+    </resultMap>
+    <select id="selectAllStudents" resultMap="studentsInfo">
+        SELECT i.id AS id,
+        i.realName AS realName,
+        i.major AS major,
+        i.phone AS phone,
+        i.uid AS uid,
+        u.account AS account,
+        c.id as cid,
+        c.clazz_name as clazzname
+        FROM tb_user_info AS i left join
+        tb_user AS u on u.id = i.uid left join
+        r_student_clazz as r on u.id=r.uid left join
+        tb_clazz as c on r.cid=c.id
+        <where>
+            u.rid = 4
+            <if test="keyword!=null">
+                and i.realName like concat('%',#{keyword},'%')
+            </if>
+        </where>
+    </select>
+
+
+    <resultMap id="Info" type="com.lanou.entity.UserInfo">
+        <id property="id" column="id"/>
+        <result property="realName" column="realName"/>
+        <result property="major" column="major"/>
+        <result property="phone" column="phone"/>
+        <association property="tbUser" javaType="com.lanou.entity.TbUser">
+            <id property="id" column="uid"/>
+            <result property="account" column="account"/>
+        </association>
+    </resultMap>
+
+
+    <select id="selectById" resultMap="Info">
+        SELECT i.id       AS id,
+               i.realName AS realName,
+               i.major    AS major,
+               i.phone    AS phone,
+               i.uid      AS uid,
+               u.account  AS account
+        FROM tb_user_info AS i,
+             tb_user AS u
+        WHERE u.id = i.uid
+          AND u.rid = 4
+          AND u.id = #{id}
+    </select>
+
+    <select id="selectTeacherById" resultMap="Info">
+        SELECT i.id       AS id,
+               i.realName AS realName,
+               i.major    AS major,
+               i.phone    AS phone,
+               i.uid      AS uid,
+               u.account  AS account
+        FROM tb_user_info AS i,
+             tb_user AS u
+        WHERE u.id = i.uid
+          AND u.rid = 3
+          AND u.id = #{id}
+    </select>
+
+    <update id="updateByUid">
+        update tb_user_info
+        <set>
+            <if test="major!=null and major!=''">
+                major=#{major}
+            </if>
+        </set>
+        where uid=#{uid}
+    </update>
+
+    <delete id="deleteById">
+        delete
+        from tb_user_info
+        where uid = #{uid}
+    </delete>
+
+
+    <!--begin  teacher_list-->
+    <select id="selectAllTeachers" resultMap="studentsInfo">
+        SELECT i.id AS id,
+        i.realName AS realName,
+        i.major AS major,
+        i.phone AS phone,
+        i.uid AS uid,
+        u.account AS account
+        FROM tb_user_info AS i left join
+        tb_user AS u on u.id = i.uid
+        <where>
+            u.rid = 3
+            <if test="keyword!=null">
+                and i.realName like concat('%',#{keyword},'%')
+            </if>
+        </where>
+    </select>
+
+    <!--end  teacher_list-->
+
+    <!--    <select id="search" resultType="TbUser">-->
+    <!--        SELECT-->
+    <!--        <include refid="tbUserColumns"/>-->
+    <!--        FROM-->
+    <!--        tb_user AS a-->
+    <!--        <where>-->
+    <!--            <if test="username != null and username != ''">-->
+    <!--                AND a.username LIKE CONCAT('%',#{username},'%')-->
+    <!--            </if>-->
+    <!--            <if test="phone != null and phone != ''">-->
+    <!--                AND a.phone LIKE CONCAT('%',#{phone},'%')-->
+    <!--            </if>-->
+    <!--            <if test="email != null and email != ''">-->
+    <!--                AND a.email LIKE CONCAT('%',#{email},'%')-->
+    <!--            </if>-->
+    <!--        </where>-->
+    <!--    </select>-->
+
+
+    <!--    <select id="page" resultType="com.ldd.my.item.domain.TbUser" parameterType="java.util.Map">-->
+    <!--        SELECT-->
+    <!--        <include refid="tbUserColumns"/>-->
+    <!--        FROM-->
+    <!--        tb_user AS a-->
+    <!--         <where>-->
+    <!--             <if test="tbUser.username !=null and tbUser.username!=''">-->
+    <!--              AND a.username LIKE CONCAT('%',#{tbUser.username},'%')-->
+    <!--             </if>-->
+    <!--             <if test="tbUser.phone !=null and tbUser.phone!=''">-->
+    <!--                 AND a.phone LIKE CONCAT('%',#{tbUser.phone},'%')-->
+    <!--             </if>-->
+    <!--             <if test="tbUser.email !=null and tbUser.email!=''">-->
+    <!--                 AND a.email LIKE CONCAT('%',#{tbUser.email},'%')-->
+    <!--             </if>-->
+    <!--         </where>-->
+    <!--        LIMIT #{start},#{length}-->
+    <!--    </select>-->
+
+    <select id="selectAllStudentsByEId" resultType="com.lanou.entity.UserInfo">
+        SELECT DISTINCT i.id       AS id,
+                        i.realName AS realName,
+                        i.phone    AS phone,
+                        i.uid      AS uid
+        FROM tb_user_info AS i
+                 LEFT JOIN
+             r_exam_answer AS a ON a.sid = i.uid
+        where eid = #{eid}
+    </select>
+
+    <resultMap id="Result" type="com.lanou.entity.UserInfo">
+        <id property="id" column="id"></id>
+        <result property="uid" column="uid"/>
+        <result property="realName" column="realName"></result>
+        <result property="phone" column="phone"></result>
+        <association property="answer" javaType="com.lanou.entity.Answer">
+            <id property="id" column="iid"/>
+            <result property="score" column="score"/>
+        </association>
+    </resultMap>
+    <select id="selectAllStudentsRestultByEId" resultMap="Result" resultType="com.lanou.entity.UserInfo">
+        SELECT i.id       AS id,
+               i.uid      AS uid,
+               i.realName AS realName,
+               i.phone    AS phone,
+               a.id       as iid,
+               a.score
+        FROM tb_user_info AS i
+                 LEFT JOIN
+             r_score_exam_student AS a ON a.sid = i.uid
+        where eid = #{eid}
+    </select>
+</mapper>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/static/lib/layui-v2.6.8/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/css/public.css" media="all">
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">题目类别</label>
+                            <div class="layui-input-inline">
+                                <select id="major" name="level" lay-verify="required">
+                                    <option value="">请选择题目类别</option>
+                                    <option value="JAVA">JAVA</option>
+                                    <option value="HTML5">HTML5</option>
+                                </select>
+                                <!--                                <input type="text" id="major" name="major" autocomplete="off" class="layui-input">-->
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">题目级别</label>
+                            <div class="layui-input-inline">
+                                <select id="level" name="level" lay-verify="required">
+                                    <option value="">请选择题目级别</option>
+                                    <option value="1">简单</option>
+                                    <option value="2">普通</option>
+                                    <option value="3">困难</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container layui-table-tool-temp ">
+                <button class="layui-inline" lay-event="add"><i class="layui-icon layui-icon-add-1"></i></button>
+                <button class="layui-inline" lay-event="delete"><i class="layui-icon layui-icon-delete"></i></button>
+            </div>
+        </script>
+
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+
+    </div>
+</div>
+
+<script type="text/html" lay-filter="rowBtns" id="rowBtns">
+    {{#  if(d.status== 4){ }}
+    <button class="layui-btn layui-btn-sm " lay-event="edit">查看成绩</button>
+<!--    <button class="layui-btn layui-btn-sm layui-btn-normal " lay-event="marking">阅卷</button>-->
+<!--    <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除</button>-->
+    {{#  }else{ }}
+    <div>考试未完成</div>
+    {{#} }}
+</script>
+
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/lib/layui-v2.6.8/layui.js" charset="utf-8"></script>
+<script>
+    function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]);
+        return 1;
+    }
+
+
+    var clazzid = 0;
+    var perid = 0;
+    $.ajax({
+        type: "post",
+        url: "/user/queryLogin",
+        data: "",
+        success: function (res) {
+            // var content=" <option value=\"\">请选择班级</option>";
+            // for (var i = 0; i < res.data.length; i++) {
+            //     content+="<option value='"+res.data[i].uid+"'>"+res.data[i].realName+"</option>";
+            // }
+            // $("#clazzId").html(content);
+            // console.log(content);
+            if (res.status == 0) {
+                // console.log(res.data.id)
+                perid = res.data.id;
+            }
+        }
+    })
+
+    // console.log( getUrlParam("uid"))
+    // alert(getUrlParam("uid"))
+
+    layui.use(['form', 'layer', 'laydate', 'table', 'laypage'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table,
+            laypage = layui.laypage,
+            layer = layui.layer;
+
+        table.render({
+            elem: '#currentTableId',
+            url: '/exam1/list',
+            // toolbar: 'default',
+            toolbar: '#toolbarDemo',
+
+            defaultToolbar: ['filter', 'exports', 'print', {
+                title: '提示',
+                layEvent: 'LAYTABLE_TIPS',
+                icon: 'layui-icon-tips'
+            }],
+            parseData: function (res) {  //res为原始返回的数据
+                if (res.status == 0) {
+                    return {
+                        "code": res.status,
+                        "msg": res.msg,
+                        "data": res.data.list,
+                        "count": res.data.total
+                    };
+                }
+            },
+            cols: [[
+                {type: "checkbox", width: 150},
+                {field: 'id', width: 150, title: 'ID', hide: true},
+                {
+                    field: 'userInfo.realName', width: 250, title: '发布者', templet: function (s) {
+                        if (s.userInfo == null || s.userInfo == "") {
+                            return "该用户不可见"
+                        } else {
+                            return s.userInfo.realName;
+                        }
+
+                    }
+                },
+                {
+                    field: 'userInfo.uid', width: 250, title: '评委id', hide: true, templet: function (s) {
+                        return s.userInfo.uid;
+                    }
+                },
+                {
+                    field: 'userInfo.tbClazz.clazzName', width: 250, title: '团队名', templet: function (s) {
+                        // console.log(s.userInfo)
+                        // console.log(s.userInfo.tbClazz.clazzName)
+                        //     clazzid=s.userInfo.tbClazz.id;
+                        return s.userInfo.tbClazz.clazzName;
+                    }
+                },
+                {
+                    field: 'status', width: 250, title: '状态', templet: function (s) {
+                        if (s.status == 1) {
+                            return "未开始";
+                        } else if (s.status == 2) {
+                            return "正在进行";
+                        } else if (s.status == 3) {
+                            return "待批改";
+                        } else if (s.status == 4) {
+                            return "已结束";
+                        } else {
+                            return "未设置";
+                        }
+
+                    }
+                },
+                {
+                    field: 'created',
+                    width: 250,
+                    title: '创建时间',
+                    templet: "<div>{{layui.util.toDateString(d.created,'yyyy-MM-dd HH:mm:ss')}}</div>"
+                },
+                {field: 'id', title: '操作', toolbar: '#rowBtns', fixed: 'right', width: '200'}
+            ]],
+            limits: [10, 15, 20, 25, 50, 100],
+            limit: 10,
+            skin: 'line',
+            method: 'get',
+            page: true,
+            // skin: 'line',
+            loading: true,
+            title: "竞赛记录",
+            id: "currentTableId"
+        });
+
+
+        // 监听搜索操作
+        // form.on('submit(data-search-btn)', function (data) {
+        //     // 执行搜索重载
+        //     var major = $('#major'),
+        //         level = $('#level');
+        //     // console.log(major.val())
+        //     // console.log(source.val())
+        //     // console.log(level.val())
+        //     table.reload('currentTableId', {
+        //         url: "/exam/searchExamination",
+        //         method: "post",
+        //         page: {
+        //             curr: 1
+        //         }
+        //         , where: {
+        //             "major": major.val(),
+        //             "level": level.val(),
+        //         }
+        //     });
+        //     return false;
+        // });
+
+        var ids = "";
+
+        /**
+         * toolbar监听事件
+         */
+        // table.on('toolbar(currentTableFilter)', function (obj) {
+        //     if (obj.event === 'add') {  // 监听添加操作
+        //         var index = layer.open({
+        //             title: '添加题目',
+        //             type: 2,
+        //             shade: 0.2,
+        //             maxmin: true,
+        //             shadeClose: true,
+        //             area: ['100%', '100%'],
+        //             content: '../html/exam_add1.html?perid=' + perid,
+        //         });
+        //         $(window).on("resize", function () {
+        //             layer.full(index);
+        //         });
+        //     } else if (obj.event === 'delete') {  // 监听删除操作
+        //         var checkStatus = table.checkStatus('currentTableId')
+        //             , data = checkStatus.data;
+        //
+        //         // alert(JSON.stringify(checkStatus.data));
+        //         layer.confirm('真的删除这些数据吗?', function (index) {
+        //             $.ajax({
+        //                 type: "post",
+        //                 url: "/exam1/deleteByIds",
+        //                 data: "ids=" + ids,
+        //                 success: function (res) {
+        //                     if (res.status == 0) {
+        //                         alert("删除题目成功");
+        //                         //重新加载父页面
+        //                         location.reload();
+        //                     }
+        //                 }
+        //             })
+        //
+        //             obj.del();
+        //             layer.close(index);
+        //         });
+        //
+        //     }
+        // });
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            ids += obj.data.id + " "
+            // console.log(ids)
+            // console.log(obj.data.id)
+            // console.log(obj)
+        });
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+
+
+            if (obj.event === 'edit') {
+                console.log(data)
+                // clazzid=s.userInfo.tbClazz.id;
+
+                var index = layer.open({
+                    title: '查看成绩',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin: true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '../html/result_list.html?id=' + data.id + '&&perid=' + perid
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+                return false;
+            }
+
+            // else if (obj.event === 'marking') {
+            //     console.log(data)
+            //     // clazzid=s.userInfo.tbClazz.id;
+            //     var index = layer.open({
+            //         title: '阅卷',
+            //         type: 2,
+            //         shade: 0.2,
+            //         maxmin: true,
+            //         shadeClose: true,
+            //         area: ['100%', '100%'],
+            //         content: '../html/marking_list.html?id=' + data.id + '&&perid=' + perid
+            //     });
+            //     $(window).on("resize", function () {
+            //         layer.full(index);
+            //     });
+            //     return false;
+            // } else if (obj.event === 'delete') {
+            //     layer.confirm('真的删除行么?', function (index) {
+            //         console.log("----------" + data.id)
+            //         $.ajax({
+            //             type: "post",
+            //             url: "/exam1/deleteById",
+            //             data: "id=" + data.id,
+            //             success: function (res) {
+            //                 if (res.status == 0) {
+            //                     alert("删除考试成功");
+            //                     //重新加载父页面
+            //                     location.reload();
+            //                 }
+            //             }
+            //         })
+            //
+            //         obj.del();
+            //         layer.close(index);
+            //     });
+            // }
+        });
+    });
+</script>
+</body>
+</html>
+
+
+
+
+

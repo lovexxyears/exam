@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanou.dao.TbExamination1Dao">
+    <resultMap id="ExaminationList" type="com.lanou.entity.TbExamination1">
+        <id property="id" column="cid"/>
+        <result property="perid" column="perid"/>
+        <result property="clazzId" column="clazzId"/>
+        <result property="status" column="status"/>
+        <result property="created" column="created"/>
+        <association property="userInfo" javaType="com.lanou.entity.UserInfo">
+            <id property="id" column="iid"/>
+            <result property="realName" column="realName"/>
+            <result property="uid" column="uid"/>
+            <association property="tbClazz" javaType="com.lanou.entity.TbClazz">
+                <id property="id" column="id"/>
+                <result property="clazzName" column="clazzName"/>
+            </association>
+        </association>
+
+    </resultMap>
+
+    <select id="selectAll" resultMap="ExaminationList">
+        SELECT c.id           AS cid,
+               c.clazzId,
+               c.perid,
+               c.status,
+               c.created,
+               i.id           AS iid,
+               i.uid          as uid,
+               i.realName,
+               cla.clazz_name as clazzName,
+               cla.id
+        FROM tb_examination1 AS c
+                 LEFT JOIN tb_user_info AS i ON c.perid = i.uid
+                 LEFT JOIN tb_clazz AS cla ON cla.perid = c.perid
+        WHERE c.clazzId = cla.id
+    </select>
+
+    <select id="selectById" resultType="com.lanou.entity.TbExamination1">
+        select *
+        FROM tb_examination1 AS c
+        where c.id = #{cid}
+    </select>
+
+    <!--    <select id="getQuestionById" resultType="com.lanou.entity.TbQuestionSubjective">-->
+    <!--        SELECT *-->
+    <!--        FROM tb_question_subjective-->
+    <!--        WHERE id = #{id}-->
+    <!--    </select>-->
+
+    <insert id="insertExam" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into tb_examination1 (clazzId,
+                                     perid,
+                                     status,
+                                     created)
+        values (#{tbExamination1.clazzId},
+                #{tbExamination1.perid},
+                #{tbExamination1.status},
+                #{tbExamination1.created})
+    </insert>
+
+    <select id="selectUId" resultType="com.lanou.entity.TbUser">
+        SELECT s.uid as id
+        FROM r_teacher_clazz AS t
+                 LEFT JOIN r_student_clazz AS s ON t.cid = s.cid
+                 LEFT JOIN tb_examination AS e ON e.perid = t.uid
+        WHERE e.perid = #{perid}
+          and s.cid = #{clazzid}
+    </select>
+
+    <select id="selectChooseRan" resultType="com.lanou.entity.TbQuestionChoose">
+        SELECT *
+        FROM tb_question_choose as i
+        <where>
+            <if test="seg!=null and seg!=''">
+                and i.seg=#{seg}
+            </if>
+            <if test="major!=null and major!=''">
+                and i.major=#{major}
+            </if>
+            <if test="level!=0 and level!=''">
+                and i.level=#{level}
+            </if>
+        </where>
+
+        ORDER BY RAND() LIMIT #{chooseNum};
+    </select>
+
+    <select id="selectCodeRan" resultType="com.lanou.entity.TbQuestionCode">
+        SELECT *
+        FROM tb_question_code as i
+        <where>
+            <if test="seg!=null and seg!=''">
+                and i.seg=#{seg}
+            </if>
+            <if test="major!=null and major!=''">
+                and i.major=#{major}
+            </if>
+            <if test="level!=0 and level!=''">
+                and i.level=#{level}
+            </if>
+        </where>
+        ORDER BY RAND() LIMIT #{codeNum};
+    </select>
+
+    <select id="selectJudgeRan" resultType="com.lanou.entity.TbQuestionJudge">
+        SELECT *
+        FROM tb_question_judge as i
+        <where>
+            <if test="seg!=null and seg!=''">
+                and i.seg=#{seg}
+            </if>
+            <if test="major!=null and major!=''">
+                and i.major=#{major}
+            </if>
+            <if test="level!=0 and level!=''">
+                and i.level=#{level}
+            </if>
+        </where>
+        ORDER BY RAND() LIMIT #{judgeNum};
+    </select>
+
+    <select id="selectSubjectiveRan" resultType="com.lanou.entity.TbQuestionSubjective">
+        SELECT *
+        FROM tb_question_subjective as i
+        <where>
+            <if test="seg!=null and seg!=''">
+                and i.seg=#{seg}
+            </if>
+            <if test="major!=null and major!=''">
+                and i.major=#{major}
+            </if>
+            <if test="level!=0 and level!=''">
+                and i.level=#{level}
+            </if>
+        </where>
+        ORDER BY RAND() LIMIT #{subjectiveNum};
+    </select>
+
+    <insert id="insertRUExam">
+        insert into r_exam_user(eid, qid, type, score)
+        values (#{examPaper.eid}, #{examPaper.qid}, #{examPaper.type}, #{examPaper.score})
+    </insert>
+
+    <update id="updateExamStatus">
+        UPDATE tb_examination1
+        <set>
+            <if test="status!=null and status!=0">
+                status = #{status},
+            </if>
+        </set>
+        where id=#{eid}
+    </update>
+    <resultMap id="MyExaminationList" type="com.lanou.entity.TbExamination1">
+        <id property="id" column="eid"/>
+        <result property="clazzId" column="clazzId"/>
+        <result property="status" column="status"/>
+        <result property="created" column="created"/>
+        <result property="submitStatus" column="submitStatus"/>
+        <association property="tbClazz" javaType="com.lanou.entity.TbClazz">
+            <id property="id" column="id"/>
+            <result property="clazzName" column="clazzName"/>
+        </association>
+    </resultMap>
+
+    <select id="selectMyexam" resultMap="MyExaminationList">
+        SELECT e.id           AS eid,
+               e.clazzId,
+               e.status,
+               e.created,
+               e.submitStatus,
+               cla.id,
+               cla.clazz_name as clazzName
+        FROM tb_examination1 AS e
+                 JOIN r_student_clazz AS rc ON rc.cid = e.clazzId
+                 JOIN tb_clazz AS cla ON cla.id = e.clazzId
+        WHERE rc.uid = #{sid}
+    </select>
+
+    <!--    <insert id="insertCode">-->
+    <!--        insert into r_exam_user_code(eid, cid, uid,codeScore)-->
+    <!--        values (#{eid},#{cid},#{uid},#{codeScore})-->
+    <!--    </insert>-->
+
+    <!--    <insert id="insertJudge">-->
+    <!--        insert into r_exam_user_judge(eid, cid, uid,judgeScore)-->
+    <!--        values (#{eid},#{cid},#{uid},#{judgeScore})-->
+    <!--    </insert>-->
+
+    <!--    <insert id="insertSubjective">-->
+    <!--        insert into r_exam_user_subjective(eid, cid, uid,subjectiveScore)-->
+    <!--        values (#{eid},#{cid},#{uid},#{subjectiveScore})-->
+    <!--    </insert>-->
+
+<!--            <update id="updateQuestion">-->
+<!--                UPDATE tb_question_subjective-->
+<!--                <set>-->
+<!--                    <if test="major!=null and major!=''">-->
+<!--                        major = #{major},-->
+<!--                    </if>-->
+<!--                    <if test="level!=null and level!=0">-->
+<!--                        level = #{level},-->
+<!--                    </if>-->
+<!--                    <if test="source!=null and source!=''">-->
+<!--                        source = #{source},-->
+<!--                    </if>-->
+<!--                    <if test="seg!=null and seg!=''">-->
+<!--                        seg = #{seg},-->
+<!--                    </if>-->
+<!--                    <if test="title!=null and title!=''">-->
+<!--                        title = #{title},-->
+<!--                    </if>-->
+<!--                </set>-->
+<!--                where id=#{id}-->
+<!--            </update>-->
+
+    <delete id="deleteById">
+        delete
+        from tb_examination1
+        where id = #{id}
+    </delete>
+
+    <!--        <select id="searchExamination" resultMap="ExaminationList">-->
+    <!--            SELECT c.id AS cid,-->
+    <!--            c.major,-->
+    <!--            c.level,-->
+    <!--            c.perid,-->
+    <!--            c.seg,-->
+    <!--            i.id AS iid,-->
+    <!--            i.realName-->
+    <!--            FROM tb_examination AS c-->
+    <!--            LEFT JOIN tb_user_info AS i ON c.perid = i.uid-->
+    <!--            <where>-->
+    <!--                <if test="major!=null and major!=''">-->
+    <!--                    and c.major like concat('%',#{major},'%')-->
+    <!--                </if>-->
+    <!--                <if test="level!=0">-->
+    <!--                    and c.level like concat('%',#{level},'%')-->
+    <!--                </if>-->
+    <!--            </where>-->
+    <!--        </select>-->
+
+    <delete id="deleteERByEId">
+        delete
+        from r_exam_user
+        where eid = #{eid}
+    </delete>
+
+    <!--    <delete id="deleteCORByEId">-->
+    <!--        delete from r_exam_user_code  as c where c.eid={eid}-->
+    <!--    </delete>-->
+
+    <!--    <delete id="deleteJRByEId">-->
+    <!--        delete from r_exam_user_jude  as c where c.eid={eid}-->
+    <!--    </delete>-->
+
+    <!--    <delete id="deleteSRByEId">-->
+    <!--        delete from r_exam_user_subjective  as c where c.eid={eid}-->
+    <!--    </delete>-->
+    <insert id="insertAnswer">
+        insert into r_exam_answer(eid, sid, reuid, type, answer)
+        values (#{eid}, #{sid}, #{reuid}, #{type}, #{answer})
+    </insert>
+
+    <insert id="insertScore">
+        insert into r_score_exam_student(eid, sid, score)
+        values (#{eid}, #{sid}, #{score})
+    </insert>
+
+    <update id="updateSubmitStatus">
+        update tb_examination1
+        <set>
+            <if test="submitStatus!=0">
+                submitStatus=#{submitStatus}
+            </if>
+        </set>
+        where id=#{eid}
+    </update>
+
+    <select id="searchMyScore" resultType="java.lang.Integer">
+        SELECT
+               s.score
+        FROM tb_examination1 AS e
+                 JOIN r_student_clazz AS rc ON rc.cid = e.clazzId
+                 JOIN tb_clazz AS cla ON cla.id = e.clazzId
+                 JOIN r_score_exam_student AS s ON s.eid =e.id
+        WHERE rc.uid = #{uid}
+    </select>
+</mapper>
+
+

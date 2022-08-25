@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanou.dao.TbQuestionSubjectiveDao">
+    <resultMap id="QuestionList" type="com.lanou.entity.TbQuestionSubjective">
+        <id property="id" column="cid"/>
+        <result property="perid" column="perid"/>
+        <result property="major" column="major"/>
+        <result property="level" column="level"/>
+        <result property="seg" column="seg"/>
+        <result property="source" column="source"/>
+        <result property="title" column="title"/>
+        <association property="userInfo" javaType="com.lanou.entity.UserInfo">
+            <id property="id" column="iid"/>
+            <result property="realName" column="realName"/>
+        </association>
+    </resultMap>
+
+    <select id="selectAll" resultMap="QuestionList">
+        SELECT c.id AS cid,
+               c.major,
+               c.level,
+               c.source,
+               c.perid,
+               c.seg,
+               c.title,
+               i.id AS iid,
+               i.realName
+        FROM tb_question_subjective AS c
+                 LEFT JOIN tb_user_info AS i ON c.perid = i.uid
+    </select>
+
+    <select id="getQuestionById" resultType="com.lanou.entity.TbQuestionSubjective">
+        SELECT *
+        FROM tb_question_subjective
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insertQuestion">
+        insert into tb_question_subjective(major,
+                                       level,
+                                       source,
+                                       seg,
+                                           perid,
+                                       title
+                                      )
+        values (#{question.major},
+                #{question.level},
+                #{question.source},
+                #{question.seg},
+                #{question.perid},
+                #{question.title})
+    </insert>
+
+    <update id="updateQuestion">
+        UPDATE tb_question_subjective
+        <set>
+            <if test="major!=null and major!=''">
+                major = #{major},
+            </if>
+            <if test="level!=null and level!=0">
+                level = #{level},
+            </if>
+            <if test="source!=null and source!=''">
+                source = #{source},
+            </if>
+            <if test="seg!=null and seg!=''">
+                seg = #{seg},
+            </if>
+            <if test="title!=null and title!=''">
+                title = #{title},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <delete id="deleteById">
+        delete
+        from tb_question_subjective
+        where id = #{id};
+    </delete>
+
+    <select id="searchQuestion" resultMap="QuestionList">
+        SELECT c.id AS cid,
+        c.major,
+        c.level,
+        c.source,
+        c.perid,
+        c.seg,
+        c.title,
+        i.id AS iid,
+        i.realName
+        FROM tb_question_subjective AS c
+        LEFT JOIN tb_user_info AS i ON c.perid = i.uid
+        <where>
+            <if test="major!=null and major!=''">
+                and c.major like concat('%',#{major},'%')
+            </if>
+            <if test="level!=0">
+                and c.level like concat('%',#{level},'%')
+            </if>
+            <if test="source!=null and source!=''">
+                and c.source like concat('%',#{source},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByEId" resultMap="QuestionList">
+        SELECT c.id AS cid,
+               c.major,
+               c.level,
+               c.source,
+               c.perid,
+               c.seg,
+               c.title
+        FROM tb_question_subjective AS c
+                 LEFT JOIN r_exam_user AS r ON c.id = r.qid
+        where r.type=3 and r.eid=#{eid}
+    </select>
+
+    <resultMap id="QuestionList1" type="com.lanou.entity.TbQuestionSubjective">
+        <id property="id" column="cid"/>
+        <result property="perid" column="perid"/>
+        <result property="major" column="major"/>
+        <result property="level" column="level"/>
+        <result property="seg" column="seg"/>
+        <result property="source" column="source"/>
+        <result property="title" column="title"/>
+        <association property="answer" javaType="com.lanou.entity.Answer">
+            <id property="id" column="id"/>
+            <result property="answer" column="answer"/>
+        </association>
+    </resultMap>
+    <select id="selectByEIdAndUId" resultMap="QuestionList1">
+        SELECT c.id AS cid,
+               c.major,
+               c.level,
+               c.source,
+               c.perid,
+               c.seg,
+               c.title,
+               r.id as id,
+               r.answer
+        FROM tb_question_subjective AS c
+                 LEFT JOIN r_exam_answer AS r ON c.id = r.reuid
+        WHERE r.type=3 AND r.eid=#{eid} and r.sid=#{sid}
+    </select>
+</mapper>
+
+

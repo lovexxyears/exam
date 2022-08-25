@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd"
+>
+
+    <description>Spring MVC Configuration</description>
+
+    <!-- 加载配置属性文件 -->
+    <context:property-placeholder ignore-unresolvable="true" location="classpath:myitem.properties"/>
+
+    <!-- 使用 Annotation 自动注册 Bean,只扫描 @Controller -->
+    <context:component-scan base-package="com.lanou" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- 默认的注解映射的支持 -->
+    <mvc:annotation-driven/>
+
+    <!-- 定义视图文件解析 -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <!--        $ 要读properties 里的属性-->
+        <property name="prefix" value="${web.view.prefix}"/>
+        <property name="suffix" value="${web.view.suffix}"/>
+    </bean>
+
+
+    <!-- 静态资源映射 **全目录匹配 -->
+    <mvc:resources mapping="/static/**" location="/static/" cache-period="31536000"/>
+
+
+    <!--    拦截器配置-->
+
+    <!--    <mvc:interceptors>-->
+    <!--        <bean id="LoginInterceptor" class="com.lanou.interceptor.LoginInterceptor"></bean>-->
+    <!--        <bean id="RoleInterceptor" class="com.lanou.interceptor.RoleInterceptor"></bean>-->
+    <!--    </mvc:interceptors>-->
+
+    <!--    <mvc:interceptors>-->
+    <!--        <mvc:interceptor>-->
+    <!--            <mvc:mapping path="/**"/>-->
+    <!--            &lt;!&ndash;            排除&ndash;&gt;-->
+    <!--            <mvc:exclude-mapping path="/user/**"/>-->
+    <!--            <mvc:exclude-mapping path="/static/**"/>-->
+    <!--            <bean id="testInter" class="com.lanou.interceptor.LoginInterceptor"></bean>-->
+    <!--        </mvc:interceptor>-->
+    <!--    </mvc:interceptors>-->
+    <!--    <mvc:interceptors>-->
+    <!--        <mvc:interceptor>-->
+    <!--            <mvc:mapping path="/**"/>-->
+    <!--            &lt;!&ndash;            排除&ndash;&gt;-->
+    <!--            <mvc:exclude-mapping path="/user/**"/>-->
+    <!--            <mvc:exclude-mapping path="/static/**"/>-->
+    <!--            <bean id="RoleInterceptor" class="com.lanou.interceptor.RoleInterceptor"></bean>-->
+    <!--        </mvc:interceptor>-->
+
+    <!--    </mvc:interceptors>-->
+
+
+    <!--    开启事物 -->
+    <!--    事物管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <tx:advice id="interceptor" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="add* " propagation="REQUIRED"/>
+            <tx:method name="query* " propagation="SUPPORTS"/>
+            <tx:method name="select* " propagation="SUPPORTS"/>
+            <tx:method name="find* " propagation="SUPPORTS"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config>
+        <aop:advisor advice-ref="interceptor" pointcut="execution(* com.lanou.service..*.*(..))"></aop:advisor>
+    </aop:config>
+
+    <!-- id 必须是 multipartResolver  文件上传-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="#{10*1024*1024}"/>
+        <property name="defaultEncoding" value="utf8"/>
+    </bean>
+
+
+    <!-- 开启Shiro的注解(如@RequiresRoles,@RequiresPermissions),需借助SpringAOP扫描使用Shiro注解的类,并在必要时进行安全逻辑验证  -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor">
+        <property name="proxyTargetClass" value="true"/>
+    </bean>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+</beans>

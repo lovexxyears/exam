@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanou.dao.UserDao">
+
+    <resultMap id="UserWithRole" type="com.lanou.entity.TbUser">
+        <id property="id" column="id"></id>
+        <result property="account" column="account"></result>
+        <result property="password" column="password"></result>
+        <association property="role" javaType="com.lanou.entity.TbRole">
+            <id property="id" column="rid"></id>
+            <result property="roleName" column="rolename"></result>
+        </association>
+    </resultMap>
+    <select id="selectByAccount" resultMap="UserWithRole">
+        SELECT u.id        as id,
+               u.account,
+               u.rid       as rid,
+               r.role_name as rolename
+        FROM tb_user AS u,
+             tb_role as r
+        WHERE u.rid = r.id
+          and u.account = #{user.account}
+          and u.password = #{user.password}
+    </select>
+
+    <select id="select4Shire" resultMap="UserWithRole">
+        SELECT u.id        as id,
+               u.account as account,
+               u.password as password,
+               u.rid       as rid,
+               r.role_name as rolename
+        FROM tb_user AS u,
+             tb_role as r
+        WHERE u.rid = r.id
+          and u.account = #{username}
+    </select>
+<!--    and u.password = #{user.password}-->
+    <select id="queryTeachers" resultType="com.lanou.entity.TbUser">
+        select id, account
+        from tb_user
+        where rid = 3
+    </select>
+
+
+    <insert id="insertUser" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        INSERT INTO tb_user (account,
+                             password,
+                             rid)
+        VALUES (#{user.account},
+                #{user.password},
+                #{user.role.id}
+                )
+    </insert>
+
+    <insert id="insertRelation">
+        insert into r_student_clazz(uid,cid) values (
+        #{uid},
+        #{cid}
+        )
+    </insert>
+
+    <insert id="insertTCRelation">
+        insert into r_teacher_clazz(uid,cid) values (
+                                                        #{uid},
+                                                        #{cid}
+                                                    )
+    </insert>
+
+    <update id="updateRelation">
+        update r_student_clazz
+        <set>
+            <if test="cid!=0">
+                cid=#{cid}
+            </if>
+        </set>
+        where uid=#{uid}
+    </update>
+
+    <update id="updateTCRelation">
+        update r_teacher_clazz
+        <set>
+            <if test="cid!=0">
+                cid=#{cid}
+            </if>
+        </set>
+        where uid=#{uid}
+    </update>
+    
+    <delete id="deleteById">
+        delete  from tb_user where  id=#{id}
+    </delete>
+
+    <delete id="deleteRelation">
+        delete from r_student_clazz  where uid=#{uid}
+    </delete>
+
+    <delete id="deleteTCRelation">
+        delete from r_teacher_clazz  where uid=#{uid}
+    </delete>
+
+    <!--    <delete id="delete">-->
+    <!--        DELETE FROM tb_user WHERE id=#{id}-->
+
+    <!--    </delete>-->
+    <!--    -->
+    <!--    <select id="getById" resultType="com.ldd.my.item.domain.TbUser">-->
+    <!--         SELECT-->
+    <!--        <include refid="tbUserColumns"/>-->
+    <!--        FROM-->
+    <!--          tb_user AS a-->
+    <!--          WHERE-->
+    <!--          a.id?1=#{id}-->
+    <!--    </select>-->
+
+    <!--    <update id="update">-->
+    <!--        UPDATE-->
+    <!--            tb_user-->
+    <!--        SET-->
+    <!--          username = #{username},-->
+    <!--          password = #{password},-->
+    <!--          phone= #{phone},-->
+    <!--          email = #{email},-->
+    <!--          updated = #{updated}-->
+    <!--        WHERE-->
+    <!--        id = #{id};-->
+    <!--    </update>-->
+
+
+    <!--    <select id="search" resultType="TbUser">-->
+    <!--        SELECT-->
+    <!--        <include refid="tbUserColumns"/>-->
+    <!--        FROM-->
+    <!--        tb_user AS a-->
+    <!--        <where>-->
+    <!--            <if test="username != null and username != ''">-->
+    <!--                AND a.username LIKE CONCAT('%',#{username},'%')-->
+    <!--            </if>-->
+    <!--            <if test="phone != null and phone != ''">-->
+    <!--                AND a.phone LIKE CONCAT('%',#{phone},'%')-->
+    <!--            </if>-->
+    <!--            <if test="email != null and email != ''">-->
+    <!--                AND a.email LIKE CONCAT('%',#{email},'%')-->
+    <!--            </if>-->
+    <!--        </where>-->
+
+    <!--    </select>-->
+
+    <!--    <delete id="deleteMulti">-->
+    <!--        DELETE FROM tb_user-->
+    <!--        WHERE id IN-->
+    <!--        <foreach collection="array" open="(" close=")" separator="," item="id">-->
+    <!--            #{id}-->
+    <!--        </foreach>-->
+    <!--    </delete>-->
+
+    <!--    <select id="page" resultType="com.ldd.my.item.domain.TbUser" parameterType="java.util.Map">-->
+    <!--        SELECT-->
+    <!--        <include refid="tbUserColumns"/>-->
+    <!--        FROM-->
+    <!--        tb_user AS a-->
+    <!--         <where>-->
+    <!--             <if test="tbUser.username !=null and tbUser.username!=''">-->
+    <!--              AND a.username LIKE CONCAT('%',#{tbUser.username},'%')-->
+    <!--             </if>-->
+    <!--             <if test="tbUser.phone !=null and tbUser.phone!=''">-->
+    <!--                 AND a.phone LIKE CONCAT('%',#{tbUser.phone},'%')-->
+    <!--             </if>-->
+    <!--             <if test="tbUser.email !=null and tbUser.email!=''">-->
+    <!--                 AND a.email LIKE CONCAT('%',#{tbUser.email},'%')-->
+    <!--             </if>-->
+    <!--         </where>-->
+    <!--        LIMIT #{start},#{length}-->
+    <!--    </select>-->
+
+    <!--    <select id="count" resultType="java.lang.Integer">-->
+    <!--        SELECT COUNT(*) FROM tb_user AS a-->
+    <!--        <where>-->
+    <!--            <if test="username !=null and username!=''">-->
+    <!--                AND a.username LIKE CONCAT('%',#{username},'%')-->
+    <!--            </if>-->
+    <!--            <if test="phone !=null and phone!=''">-->
+    <!--                AND a.phone LIKE CONCAT('%',#{phone},'%')-->
+    <!--            </if>-->
+    <!--            <if test="email !=null and email!=''">-->
+    <!--                AND a.email LIKE CONCAT('%',#{email},'%')-->
+    <!--            </if>-->
+    <!--        </where>-->
+    <!--    </select>-->
+</mapper>

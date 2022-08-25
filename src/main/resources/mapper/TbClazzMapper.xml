@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanou.dao.ClazzDao">
+
+    <resultMap id="ClazzWithAll" type="com.lanou.entity.TbClazz">
+        <id property="id" column="id"></id>
+        <result property="clazzName" column="clazzname"></result>
+        <result property="start" column="start"></result>
+        <result property="major" column="major"></result>
+        <result property="status" column="status"></result>
+        <association property="per" javaType="com.lanou.entity.UserInfo">
+            <id property="id" column="perid"></id>
+            <result property="realName" column="realName"></result>
+        </association>
+        <collection property="students" ofType="com.lanou.entity.TbUser">
+            <id property="id" column="sid"></id>
+        </collection>
+    </resultMap>
+
+    <resultMap id="ClazzWithCount" type="com.lanou.entity.TbClazz">
+        <id property="id" column="id"></id>
+        <result property="clazzName" column="clazzname"></result>
+        <result property="start" column="start"></result>
+        <result property="major" column="major"></result>
+        <result property="status" column="status"></result>
+        <result column="scount" property="count"></result>
+        <association property="per" javaType="com.lanou.entity.UserInfo">
+            <id property="id" column="perid"></id>
+            <result property="realName" column="realName"></result>
+        </association>
+    </resultMap>
+    <!--    s.id as sid,-->
+
+    <!--    tb_clazz as c,-->
+    <!--    tb_user as t,-->
+    <!--    tb_user as s,-->
+    <!--    r_student_clazz as r-->
+    <select id="selectAll" resultMap="ClazzWithCount">
+        SELECT c.id as id,
+        c.clazz_name as clazzname,
+        c.start as start,
+        c.major as major,
+        c.perid as perid,
+        c.status as status,
+        t.realName as realName,
+        count(s.id) as scount
+        FROM
+        tb_clazz as c left join
+        tb_user_info as t on c.perid = t.uid left join
+        r_student_clazz as r on c.id = r.cid left join
+        tb_user as s on s.id = r.uid
+        <where>
+            <if test="keyword!=null">
+                c.clazz_name like concat('%',#{keyword},'%')
+            </if>
+        </where>
+        group by c.id
+    </select>
+
+    <insert id="addClazz">
+        insert into tb_clazz(clazz_name, perid, start, major, status)
+        values (#{clazz.clazzName},
+                #{perid},
+                #{clazz.start},
+                #{clazz.major},
+                1)
+    </insert>
+
+    <select id="queryById" resultMap="ClazzWithAll">
+        SELECT c.id as id,
+        c.clazz_name as clazzname,
+        c.start as start,
+        c.major as major,
+        c.perid as perid,
+        c.status as status,
+        t.realName as realName
+        FROM
+        tb_clazz as c left join
+        tb_user_info as t on c.perid = t.uid left join
+        r_student_clazz as r on c.id = r.cid left join
+        tb_user as s on s.id = r.uid
+where c.id=#{id}
+    </select>
+
+    <update id="updateById">
+        update tb_clazz
+        <set>
+            <if test="perid!=0">
+                perid =#{perid}
+            </if>
+        </set>
+        where
+            id=#{id}
+    </update>
+
+    <delete id="deleteById">
+        delete  from tb_clazz where  id=#{id}
+    </delete>
+
+    <delete id="deleteRelation">
+        delete from r_student_clazz where  id=#{id}
+    </delete>
+
+    <select id="queryAll" resultType="com.lanou.entity.TbClazz">
+        select id,clazz_name from tb_clazz
+    </select>
+
+    <select id="queryAllClazz" resultType="com.lanou.entity.TbClazz">
+        select id,clazz_name from tb_clazz as c where c.perid=#{perid}
+    </select>
+
+
+
+
+    <!--    <delete id="delete">-->
+    <!--        DELETE FROM tb_user WHERE id=#{id}-->
+
+    <!--    </delete>-->
+    <!--    -->
+    <!--    <select id="getById" resultType="com.ldd.my.item.domain.TbUser">-->
+    <!--         SELECT-->
+    <!--        <include refid="tbUserColumns"/>-->
+    <!--        FROM-->
+    <!--          tb_user AS a-->
+    <!--          WHERE-->
+    <!--          a.id?1=#{id}-->
+    <!--    </select>-->
+
+    <!--    <update id="update">-->
+    <!--        UPDATE-->
+    <!--            tb_user-->
+    <!--        SET-->
+    <!--          username = #{username},-->
+    <!--          password = #{password},-->
+    <!--          phone= #{phone},-->
+    <!--          email = #{email},-->
+    <!--          updated = #{updated}-->
+    <!--        WHERE-->
+    <!--        id = #{id};-->
+    <!--    </update>-->
+
+
+    <!--    <select id="search" resultType="TbUser">-->
+    <!--        SELECT-->
+    <!--        <include refid="tbUserColumns"/>-->
+    <!--        FROM-->
+    <!--        tb_user AS a-->
+    <!--        <where>-->
+    <!--            <if test="username != null and username != ''">-->
+    <!--                AND a.username LIKE CONCAT('%',#{username},'%')-->
+    <!--            </if>-->
+    <!--            <if test="phone != null and phone != ''">-->
+    <!--                AND a.phone LIKE CONCAT('%',#{phone},'%')-->
+    <!--            </if>-->
+    <!--            <if test="email != null and email != ''">-->
+    <!--                AND a.email LIKE CONCAT('%',#{email},'%')-->
+    <!--            </if>-->
+    <!--        </where>-->
+
+    <!--    </select>-->
+
+    <!--    <delete id="deleteMulti">-->
+    <!--        DELETE FROM tb_user-->
+    <!--        WHERE id IN-->
+    <!--        <foreach collection="array" open="(" close=")" separator="," item="id">-->
+    <!--            #{id}-->
+    <!--        </foreach>-->
+    <!--    </delete>-->
+
+    <!--    <select id="page" resultType="com.ldd.my.item.domain.TbUser" parameterType="java.util.Map">-->
+    <!--        SELECT-->
+    <!--        <include refid="tbUserColumns"/>-->
+    <!--        FROM-->
+    <!--        tb_user AS a-->
+    <!--         <where>-->
+    <!--             <if test="tbUser.username !=null and tbUser.username!=''">-->
+    <!--              AND a.username LIKE CONCAT('%',#{tbUser.username},'%')-->
+    <!--             </if>-->
+    <!--             <if test="tbUser.phone !=null and tbUser.phone!=''">-->
+    <!--                 AND a.phone LIKE CONCAT('%',#{tbUser.phone},'%')-->
+    <!--             </if>-->
+    <!--             <if test="tbUser.email !=null and tbUser.email!=''">-->
+    <!--                 AND a.email LIKE CONCAT('%',#{tbUser.email},'%')-->
+    <!--             </if>-->
+    <!--         </where>-->
+    <!--        LIMIT #{start},#{length}-->
+    <!--    </select>-->
+
+    <!--    <select id="count" resultType="java.lang.Integer">-->
+    <!--        SELECT COUNT(*) FROM tb_user AS a-->
+    <!--        <where>-->
+    <!--            <if test="username !=null and username!=''">-->
+    <!--                AND a.username LIKE CONCAT('%',#{username},'%')-->
+    <!--            </if>-->
+    <!--            <if test="phone !=null and phone!=''">-->
+    <!--                AND a.phone LIKE CONCAT('%',#{phone},'%')-->
+    <!--            </if>-->
+    <!--            <if test="email !=null and email!=''">-->
+    <!--                AND a.email LIKE CONCAT('%',#{email},'%')-->
+    <!--            </if>-->
+    <!--        </where>-->
+    <!--    </select>-->
+</mapper>

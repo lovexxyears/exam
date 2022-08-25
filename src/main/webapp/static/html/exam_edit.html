@@ -1,0 +1,367 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/static/lib/layui-v2.6.8/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/css/public.css" media="all">
+    <link rel="stylesheet" href="/static/css/xadmin.css">
+    <style>
+        body {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-form layuimini-form">
+    <form id="myadd" class="layui-form layui-form-pane" lay-submit
+          lay-filter="userForm" enctype="multipart/form-data">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="x-red">*</span>题目类别</label>
+            <div class="layui-input-block">
+                <input type="radio" name="major" value="Java" lay-skin="primary" title="Java" checked="">
+                <input type="radio" name="major" value="HTML5" lay-skin="primary" title="HTML5">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="x-red">*</span>题目级别</label>
+            <div class="layui-input-block">
+                <input type="radio" name="level" value="1" lay-skin="primary" title="简单" checked="">
+                <input type="radio" name="level" value="2" lay-skin="primary" title="普通">
+                <input type="radio" name="level" value="3" lay-skin="primary" title="困难">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">题目类型</label>
+            <div class="layui-input-block">
+                <input type="text" name="seg" style="width: 60%" placeholder="请输入题目类型" value="" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button id="select" type="button" class="layui-btn" lay-submit lay-filter="formChoose">查寻单选题题目</button>
+                <button  type="button" class="layui-btn" lay-submit lay-filter="formCode">查寻代码题题目</button>
+                <button  type="button" class="layui-btn" lay-submit lay-filter="formJudge">查寻判断题题目</button>
+                <button  type="button" class="layui-btn" lay-submit lay-filter="formSubjective">查寻主观题题目</button>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">单选题分值</label>
+            <div class="layui-input-block">
+                <input type="text" id="chooseScore" style="width: 60%" placeholder="请输入单选题分值" value="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="cid" class="layui-form-label">
+                <!--                <span class="x-red">*</span>-->
+                新增选择题
+            </label>
+            <div class="layui-col-md8 layui-input-inline" style="width: 55%">
+                <select id="cid">
+
+                </select>
+            </div>
+            <input value="添加选择题" type="button" class="layui-btn" style="display: inline-block;width: 20%"
+                   onclick="addChoose();">
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">代码题分值</label>
+            <div class="layui-input-block">
+                <input type="text" id="codeScore"  style="width: 60%" placeholder="请输入代码题分值" value="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="cid" class="layui-form-label">新增代码题</label>
+            <div class="layui-col-md8 layui-input-inline" style="width: 55%">
+                <select id="coid">
+
+                </select>
+            </div>
+            <input value="添加代码题" type="button" class="layui-btn" style="display: inline-block;width: 20%"
+                   onclick="addCode();">
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label required">判断题分值</label>
+            <div class="layui-input-block">
+                <input type="text" style="width: 60%" id="judgeScore" placeholder="请输入判断题分值" value="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="cid" class="layui-form-label">新增判断题</label>
+            <div class="layui-col-md8 layui-input-inline" style="width: 55%">
+                <select id="jid">
+
+                </select>
+            </div>
+            <input value="添加判断题" type="button" class="layui-btn" style="display: inline-block;width: 20%"
+                   onclick="addJudge();">
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">主观题分值</label>
+            <div class="layui-input-block">
+                <input type="text" id="subjectiveScore" style="width: 60%" placeholder="请输入主观题分值" value="" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="cid" class="layui-form-label">新增主观题</label>
+            <div class="layui-col-md8 layui-input-inline" style="width: 55%">
+                <select id="sid">
+
+                </select>
+            </div>
+            <input value="添加主观题" type="button"  class="layui-btn" style="display: inline-block;width: 20%"
+                   onclick="addSubjective();">
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button id="save" type="button" class="layui-btn" lay-submit lay-filter="formUser">添加完毕</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="/static/lib/layui-v2.6.8/layui.js" charset="utf-8"></script>
+<script src="../js/jquery.min.js"></script>
+<script>
+    function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]);
+        return 1;
+    }
+
+    // console.log("uid=hhh"+getUrlParam("id"))
+
+
+
+    function addChoose() {
+        var chooseScore = $("#chooseScore").val();
+        var cid = $("#cid").val();
+        var eid = getUrlParam("id");
+        console.log(chooseScore)
+        console.log(cid)
+        console.log(eid)
+
+        $.ajax({
+            type: "post",
+            url: "/exam/addChoose",
+            data: {"chooseScore": chooseScore, "cid": cid, "eid": eid},
+            success: function (res) {
+                if (res.status != 1) {
+                    alert("添加单选题成功");
+                }
+            }
+        })
+    }
+
+    function addCode() {
+        var codeScore = $("#codeScore").val();
+        var cid = $("#coid").val();
+        var eid = getUrlParam("id");
+        console.log(codeScore)
+        console.log("cid"+cid)
+        console.log('eid'+eid)
+
+        $.ajax({
+            type: "post",
+            url: "/exam/addCode",
+            data: {"codeScore": codeScore, "cid": cid, "eid": eid},
+            success: function (res) {
+                if (res.status != 1) {
+                    alert("添加代码题成功");
+
+                }
+            }
+        })
+    }
+
+    function addJudge() {
+        var judgeScore = $("#judgeScore").val();
+        var cid = $("#jid").val();
+        var eid = getUrlParam("id");
+        console.log(codeScore)
+        console.log("cid"+cid)
+        console.log('eid'+eid)
+
+        $.ajax({
+            type: "post",
+            url: "/exam/addJudge",
+            data: {"judgeScore": judgeScore, "cid": cid, "eid": eid},
+            success: function (res) {
+                if (res.status != 1) {
+                    alert("添加判断题成功");
+                }
+            }
+        })
+    }
+
+    function addSubjective() {
+        var subjectiveScore = $("#subjectiveScore").val();
+        var cid = $("#sid").val();
+        var eid = getUrlParam("id");
+        console.log(codeScore)
+        console.log("cid"+cid)
+        console.log('eid'+eid)
+
+        $.ajax({
+            type: "post",
+            url: "/exam/addSubjective",
+            data: {"subjectiveScore": subjectiveScore, "cid": cid, "eid": eid},
+            success: function (res) {
+                if (res.status != 1) {
+                    alert("添加主观题成功");
+                }
+            }
+        })
+    }
+
+
+    layui.use(['form'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            $ = layui.$;
+
+        //查询选择题
+        form.on('submit(formChoose)', function (data) {
+            // data.field.perid = getUrlParam("uid");
+            console.log(data.field)
+            $.ajax({
+                url: '/exam/selectCloose',
+                data: data.field,
+                type: "post",
+                success: function (res) {
+                    // var sel=document.getElementById("per");
+                    // sel.options.length=0;
+                    // sel.add(new Option("请选择",""));
+                    var content = " <option value=\"\">请选择单选题</option>";
+                    console.log(res.data.length)
+                    for (var i = 0; i < res.data.length; i++) {
+                        // sel.disabled=false;
+                        // sel.add(new Option(res.data[i].title));
+                        // var opt=new Option();
+                        // opt.value=res.data[i].id;
+                        //     opt.text=res.data[i].title;
+                        //     sel.append(opt);
+                        content += "<option value='" + res.data[i].id + "'>" + res.data[i].title + "</option>";
+                    }
+                    console.log(content)
+                    $("#cid").html(content);
+                    // console.log(sel)
+                    // $("#per").html(sel.innerHTML);
+                    form.render('select');
+                }
+
+            })
+            return false;
+        });
+
+
+        //查询代码
+        form.on('submit(formCode)', function (data) {
+            // data.field.perid = getUrlParam("uid");
+            console.log(data.field)
+            $.ajax({
+                url: '/exam/selectCode',
+                data: data.field,
+                type: "post",
+                success: function (res) {
+                    var content = " <option value=\"\">请选择代码题</option>";
+                    console.log(res.data.length)
+                    for (var i = 0; i < res.data.length; i++) {
+                        content += "<option value='" + res.data[i].id + "'>" + res.data[i].title + "</option>";
+                    }
+                    console.log(content)
+                    $("#coid").html(content);
+                    form.render('select');
+                }
+
+            })
+            return false;
+        });
+
+        //查询判断
+        form.on('submit(formJudge)', function (data) {
+            // data.field.perid = getUrlParam("uid");
+            console.log(data.field)
+            $.ajax({
+                url: '/exam/selectJudge',
+                data: data.field,
+                type: "post",
+                success: function (res) {
+                    var content = " <option value=\"\">请选择判断题</option>";
+                    console.log(res.data.length)
+                    for (var i = 0; i < res.data.length; i++) {
+                        content += "<option value='" + res.data[i].id + "'>" + res.data[i].title + "</option>";
+                    }
+                    console.log(content)
+                    $("#jid").html(content);
+                    form.render('select');
+                }
+
+            })
+            return false;
+        });
+
+        //查询主观题
+        form.on('submit(formSubjective)', function (data) {
+            // data.field.perid = getUrlParam("uid");
+            console.log(data.field)
+            $.ajax({
+                url: '/exam/selectSubjective',
+                data: data.field,
+                type: "post",
+                success: function (res) {
+                    var content = " <option value=\"\">请选择主观题</option>";
+                    console.log(res.data.length)
+                    for (var i = 0; i < res.data.length; i++) {
+                        content += "<option value='" + res.data[i].id + "'>" + res.data[i].title + "</option>";
+                    }
+                    console.log(content)
+                    $("#sid").html(content);
+                    form.render('select');
+                }
+            })
+            return false;
+        });
+
+        //监听提交
+        form.on('submit(formUser)', function (data) {
+            // data.field.perid = getUrlParam("uid");
+            // // console.log(data.field)
+            // $.ajax({
+            //     url: '/subjective/questionAdd',
+            //     data: data.field,
+            //     type: "post",
+            //     success: function () {
+            //         alert("新增判断题成功")
+            //         //重新加载父页面
+            //         parent.location.reload();
+            //
+            //         var iframeIndex = parent.layer.getFrameIndex(window.name);
+            //         parent.layer.close(iframeIndex);
+            //     }
+            // })
+
+            alert("添加题目完毕？")
+            //重新加载父页面
+            parent.location.reload();
+
+            var iframeIndex = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(iframeIndex);
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

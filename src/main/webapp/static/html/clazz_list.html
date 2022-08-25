@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>团队列表</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="../css/font.css">
+    <link rel="stylesheet" href="../css/xadmin.css">
+    <script src="../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="../js/xadmin.js"></script>
+    <!-- 让IE8/9支持媒体查询，从而兼容栅格 -->
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+<!--<a class="layui-btn layui-btn-primary layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" href="javascript:location.replace(location.href);" title="刷新">-->
+<!--    <i class="layui-icon" style="line-height:38px">ဂ</i></a>-->
+<div class="x-body">
+    <!--    <div class="layui-row">-->
+    <!--        <div class="layui-form layui-col-md12 x-so">-->
+    <!--        </div>-->
+    <!--    </div>-->
+    <xblock>
+        <input id="seacher" type="text" placeholder="请输入团队名" autocomplete="off"
+               style="display: inline-block;width: 25%" class="layui-input">
+        <button class="layui-btn" lay-submit="" lay-filter="sreach" onclick="seacher()"><i
+                class="layui-icon">&#xe615;</i>
+        </button>
+        <button class="layui-btn" onclick="x_admin_show('添加团队','./clazz-add.html')"><i class="layui-icon"></i>添加
+        </button>
+        <span class="x-right" style="line-height:40px" id="page_total"></span>
+    </xblock>
+    <table class="layui-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>团队名</th>
+            <th>带队人员</th>
+            <th>团队组建时间</th>
+            <th>团队方向</th>
+            <th>团队人员</th>
+            <th>状态</th>
+            <th>操作</th>
+        </thead>
+        <tbody id="list_content">
+
+        </tbody>
+    </table>
+    <div class="page">
+        <div>
+            <a id="prev" class="prev" href="">&lt;&lt;</a>
+
+            <span id="current" class="current"></span>
+            <!--            <a class="num" href="">3</a>-->
+            <a id="next" href="">&gt;&gt;</a>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+    function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]);
+        return 1;
+    }
+
+
+    $.ajax({
+        type: "post",
+        url: "/clazz/queryByPage",
+        data: "page=" + getUrlParam("page"),
+        success: function (res) {
+            if (res.status != 1) {
+                var content = "";
+                for (var i = 0; i < res.data.list.length; i++) {
+                    content += " <tr >\n" +
+                        "            <td style='padding: 4px ,15px'>" + res.data.list[i].id + "</td>\n" +
+                        "            <td>" + res.data.list[i].clazzName + "</td>\n" +
+                        "            <td>" + res.data.list[i].per.realName + "</td>\n" +
+                        "            <td>" + res.data.list[i].start + "</td>\n" +
+                        "            <td>" + res.data.list[i].major + "</td>\n" +
+                        "            <td>" + res.data.list[i].count + "</td>\n" +
+                        "            <td class=\"td-status\">\n" +
+                        "                <span class=\"layui-btn layui-btn-normal layui-btn-mini\">" + (res.data.list[i].status == 1 ? "开始" : "结束") + "</span></td>\n" +
+                        "            <td class=\"td-manage\">\n" +
+                        "                <a title=\"编辑\"  onclick=\"x_admin_show('编辑','clazz_edit.html?id=" + res.data.list[i].id + "')\" href=\"javascript:;\">\n" +
+                        "                    <i class=\"layui-icon\">&#xe642;</i>\n" +
+                        "                </a>\n" +
+                        "                <a title=\"删除\" onclick=\"clazz_del('" + res.data.list[i].id + "')\" href=\"javascript:;\">\n" +
+                        "                    <i class=\"layui-icon\">&#xe640;</i>\n" +
+                        "                </a>\n" +
+                        "            </td>\n" +
+                        "        </tr>";
+                }
+                $("#list_content").html(content);
+                $("#page_total").text("共有数据" + res.data.total + "条")
+
+                if (!res.data.hasPreviousPage) {
+                    $("#prev").attr("style", "display:none");
+                }else{
+                    $("#prev").attr("href","clazz_list.html?page="+res.data.prePage);
+                }
+
+                if (!res.data.hasNextPage) {
+                    $("#next").attr("style", "display:none");
+                }else{
+                    $("#next").attr("href","clazz_list.html?page="+res.data.nextPage);
+                }
+
+                $("#current").text(res.data.pageNum);
+            }
+            // console.log(res);
+        }
+    })
+
+    function seacher() {
+        var par = $("#seacher").val();
+        $.ajax({
+            type: "post",
+            url: "../../clazz/querySercher",
+            data: "page=" + getUrlParam("page") + "&keyword=" + par,
+            success: function (res) {
+                if (res.status != 1) {
+                    var content = "";
+                    for (var i = 0; i < res.data.list.length; i++) {
+                        content += " <tr >\n" +
+                            "            <td style='padding: 4px ,15px'>" + res.data.list[i].id + "</td>\n" +
+                            "            <td>" + res.data.list[i].clazzName + "</td>\n" +
+                            "            <td>" + res.data.list[i].per.realName + "</td>\n" +
+                            "            <td>" + res.data.list[i].start + "</td>\n" +
+                            "            <td>" + res.data.list[i].major + "</td>\n" +
+                            "            <td>" + res.data.list[i].count + "</td>\n" +
+                            "            <td class=\"td-status\">\n" +
+                            "                <span class=\"layui-btn layui-btn-normal layui-btn-mini\">" + (res.data.list[i].status == 1 ? "开始" : "结束") + "</span></td>\n" +
+                            "            <td class=\"td-manage\">\n" +
+                            "                <a title=\"编辑\"  onclick=\"x_admin_show('编辑','clazz_edit.html?id=" + res.data.list[i].id + "')\" href=\"javascript:;\">\n" +
+                            "                    <i class=\"layui-icon\">&#xe642;</i>\n" +
+                            "                </a>\n" +
+                            "                <a title=\"删除\" onclick=\"clazz_del('" + res.data.list[i].id + "')\" href=\"javascript:;\">\n" +
+                            "                    <i class=\"layui-icon\">&#xe640;</i>\n" +
+                            "                </a>\n" +
+                            "            </td>\n" +
+                            "        </tr>";
+                    }
+                    $("#list_content").html(content);
+                    $("#page_total").text("共有数据" + res.data.total + "条")
+
+
+                    if (!res.data.hasPreviousPage) {
+                        $("#prev").attr("style", "display:none");
+                    }else{
+                        $("#prev").attr("href","clazz_list.html?page="+res.data.prePage);
+                    }
+
+                    if (!res.data.hasNextPage) {
+                        $("#next").attr("style", "display:none");
+                    }else{
+                        $("#next").attr("href","clazz_list.html?page="+res.data.nextPage);
+                    }
+
+                    $("#current").text(res.data.pageNum);
+                }
+            }
+        })
+    }
+
+    function clazz_del(id) {
+        $.ajax({
+            type: "post",
+            url: "../../clazz/deleteById",
+            data: "id=" + id,
+            success: function (res) {
+                if (res.status != 1) {
+                    window.location.reload();
+                }
+            }
+        })
+    }
+
+</script>
+</body>
+
+</html>

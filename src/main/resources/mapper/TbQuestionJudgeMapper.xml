@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanou.dao.TbQuestionJudgeDao">
+    <resultMap id="QuestionList" type="com.lanou.entity.TbQuestionJudge">
+        <id property="id" column="cid"/>
+        <result property="perid" column="perid"/>
+        <result property="major" column="major"/>
+        <result property="level" column="level"/>
+        <result property="seg" column="seg"/>
+        <result property="source" column="source"/>
+        <result property="title" column="title"/>
+        <result property="correct" column="correct"/>
+        <association property="userInfo" javaType="com.lanou.entity.UserInfo">
+            <id property="id" column="iid"/>
+            <result property="realName" column="realName"/>
+        </association>
+    </resultMap>
+
+    <select id="selectAll" resultMap="QuestionList">
+        SELECT c.id AS cid,
+               c.major,
+               c.level,
+               c.source,
+               c.perid,
+               c.seg,
+               c.title,
+               c.correct,
+               i.id AS iid,
+               i.realName
+        FROM tb_question_judge AS c
+                 LEFT JOIN tb_user_info AS i ON c.perid = i.uid
+    </select>
+
+    <select id="getQuestionById" resultType="com.lanou.entity.TbQuestionJudge">
+        SELECT *
+        FROM tb_question_judge
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insertQuestion">
+        insert into tb_question_judge(major,
+                                       level,
+                                       source,
+                                       seg,
+                                      perid,
+                                       title,
+                                       correct)
+        values (#{question.major},
+                #{question.level},
+                #{question.source},
+                #{question.seg},
+                #{question.perid},
+                #{question.title},
+                #{question.correct})
+    </insert>
+
+    <update id="updateQuestion">
+        UPDATE tb_question_judge
+        <set>
+            <if test="major!=null and major!=''">
+                major = #{major},
+            </if>
+            <if test="level!=null and level!=0">
+                level = #{level},
+            </if>
+            <if test="source!=null and source!=''">
+                source = #{source},
+            </if>
+            <if test="seg!=null and seg!=''">
+                seg = #{seg},
+            </if>
+            <if test="title!=null and title!=''">
+                title = #{title},
+            </if>
+            <if test="correct!=null and correct!=''">
+                correct = #{correct},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <delete id="deleteById">
+        delete
+        from tb_question_judge
+        where id = #{id};
+    </delete>
+
+    <select id="searchQuestion" resultMap="QuestionList">
+        SELECT c.id AS cid,
+        c.major,
+        c.level,
+        c.source,
+        c.perid,
+        c.seg,
+        c.title,
+        c.correct,
+        i.id AS iid,
+        i.realName
+        FROM tb_question_judge AS c
+        LEFT JOIN tb_user_info AS i ON c.perid = i.uid
+        <where>
+            <if test="major!=null and major!=''">
+                and c.major like concat('%',#{major},'%')
+            </if>
+            <if test="level!=0">
+                and c.level like concat('%',#{level},'%')
+            </if>
+            <if test="source!=null and source!=''">
+                and c.source like concat('%',#{source},'%')
+            </if>
+        </where>
+    </select>
+    <select id="selectByEId" resultMap="QuestionList">
+        SELECT c.id AS cid,
+               c.major,
+               c.level,
+               c.source,
+               c.perid,
+               c.seg,
+               c.title
+        FROM tb_question_judge AS c
+                 LEFT JOIN r_exam_user AS r ON c.id = r.qid
+        where r.type=2 and r.eid=#{eid}
+    </select>
+
+
+    <resultMap id="QuestionList1" type="com.lanou.entity.TbQuestionJudge">
+        <id property="id" column="cid"/>
+        <result property="perid" column="perid"/>
+        <result property="major" column="major"/>
+        <result property="level" column="level"/>
+        <result property="seg" column="seg"/>
+        <result property="source" column="source"/>
+        <result property="title" column="title"/>
+        <result property="correct" column="correct"/>
+        <association property="answer" javaType="com.lanou.entity.Answer">
+            <id property="id" column="id"/>
+            <result property="answer" column="answer"/>
+            <result property="score" column="score"/>
+        </association>
+    </resultMap>
+    <select id="selectByEIdAndUId" resultMap="QuestionList1">
+        SELECT c.id AS cid,
+               c.major,
+               c.level,
+               c.source,
+               c.perid,
+               c.seg,
+               c.title,
+               c.correct,
+               r.id AS id,
+               r.answer,
+               u.score
+        FROM tb_question_choose AS c
+                 LEFT JOIN r_exam_answer AS r ON c.id = r.reuid
+                 LEFT JOIN r_exam_user AS u ON u.qid=r.reuid
+        WHERE r.type=2 AND r.eid=#{eid} AND r.sid=#{sid} AND u.type=2  AND u.eid=#{eid}
+    </select>
+</mapper>
+
+

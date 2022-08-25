@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/static/lib/layui-v2.6.8/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/css/public.css" media="all">
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">题目类别</label>
+                            <div class="layui-input-inline">
+                                <select id="major" name="level" lay-verify="required">
+                                    <option value="">请选择题目类别</option>
+                                    <option value="JAVA">JAVA</option>
+                                    <option value="HTML5">HTML5</option>
+                                </select>
+<!--                                <input type="text" id="major" name="major" autocomplete="off" class="layui-input">-->
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">题目级别</label>
+                            <div class="layui-input-inline">
+                                <select id="level" name="level" lay-verify="required">
+                                    <option value="">请选择题目级别</option>
+                                    <option value="1">简单</option>
+                                    <option value="2">普通</option>
+                                    <option value="3">困难</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">题目来源</label>
+                            <div class="layui-input-inline">
+                                <input type="text" id="source" name="source" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container layui-table-tool-temp ">
+                <button class="layui-inline" lay-event="add"><i class="layui-icon layui-icon-add-1"></i></button>
+                <button class="layui-inline" lay-event="delete"><i class="layui-icon layui-icon-delete"></i></button>
+            </div>
+        </script>
+
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+
+    </div>
+</div>
+
+<!-- 行工具栏 -->
+<script type="text/html" lay-filter="rowBtns" id="rowBtns">
+    <button class="layui-btn layui-btn-sm " lay-event="edit">编辑</button>
+    <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除</button>
+</script>
+
+
+<script src="/static/lib/layui-v2.6.8/layui.js" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'layer', 'laydate', 'table', 'laypage'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table,
+            laypage = layui.laypage,
+            layer = layui.layer;
+
+        table.render({
+            elem: '#currentTableId',
+            url: '/subjective/list',
+            // toolbar: 'default',
+            toolbar: '#toolbarDemo',
+
+            defaultToolbar: ['filter', 'exports', 'print', {
+                title: '提示',
+                layEvent: 'LAYTABLE_TIPS',
+                icon: 'layui-icon-tips'
+            }],
+            parseData: function (res) {  //res为原始返回的数据
+                if (res.status == 0) {
+                    return {
+                        "code": res.status,
+                        "msg": res.msg,
+                        "data": res.data.list,
+                        "count": res.data.total
+                    };
+                }
+            },
+            cols: [[
+                {type: "checkbox", width: 100},
+                {field: 'id', width: 100, title: 'ID', hide: true},
+                {field: 'major', width: 100, title: '题目类别'},
+                {
+                    field: 'level', width: 100, title: '题目级别', templet: function (s) {
+                        if (s.level == 1) {
+                            return "简单";
+                        } else if (s.level == 2) {
+                            return "普通";
+                        } else if (s.level == 3) {
+                            return "困难";
+                        } else {
+                            return "未定义";
+                        }
+                    }
+                },
+                {field: 'source', width: 100, title: '题目来源'},
+                {
+                    field: 'userInfo.realName', width: 150, title: '出题者', templet: function (s) {
+                        if (s.userInfo == null || s.userInfo == "") {
+                            return "该用户不可见"
+                        } else {
+                            return s.userInfo.realName;
+                        }
+
+                    }
+                },
+                {field: 'seg', width: 100, title: '题目类型'},
+                {field: 'title', width: 200, title: '题目'},
+                {field: 'id', title: '操作', toolbar: '#rowBtns', fixed: 'right', width: '150'}
+            ]],
+            limits: [10, 15, 20, 25, 50, 100],
+            limit: 10,
+            skin: 'line',
+            method: 'get',
+            page: true,
+            // skin: 'line',
+            loading: true,
+            title: "单选题库",
+            id: "currentTableId"
+        });
+
+
+        // 监听搜索操作
+        form.on('submit(data-search-btn)', function (data) {
+            // 执行搜索重载
+            var major = $('#major'),
+                level = $('#level'),
+                source = $('#source');
+            // console.log(major.val())
+            // console.log(source.val())
+            // console.log(level.val())
+            table.reload('currentTableId', {
+                url:"/subjective/searchQuestion",
+                method:"post",
+                page: {
+                    curr: 1
+                }
+                , where: {
+                    "major": major.val(),
+                    "level": level.val(),
+                    "source": source.val(),
+                }
+            });
+            return false;
+        });
+
+        var ids = "";
+
+        /**
+         * toolbar监听事件
+         */
+        table.on('toolbar(currentTableFilter)', function (obj) {
+            if (obj.event === 'add') {  // 监听添加操作
+                var index = layer.open({
+                    title: '添加题目',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin: true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '../html/question_subjective_add.html',
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            } else if (obj.event === 'delete') {  // 监听删除操作
+                var checkStatus = table.checkStatus('currentTableId')
+                    , data = checkStatus.data;
+
+                // alert(JSON.stringify(checkStatus.data));
+                layer.confirm('真的删除这些数据吗?', function (index) {
+                    $.ajax({
+                        type: "post",
+                        url: "/subjective/deleteByIds",
+                        data: "ids=" + ids,
+                        success: function (res) {
+                            if (res.status == 0) {
+                                alert("删除题目成功");
+                                //重新加载父页面
+                                location.reload();
+                            }
+                        }
+                    })
+
+                    obj.del();
+                    layer.close(index);
+                });
+
+            }
+        });
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            ids += obj.data.id + " "
+            // console.log(ids)
+            // console.log(obj.data.id)
+            // console.log(obj)
+        });
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+                var index = layer.open({
+                    title: '编辑题目',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin: true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '../html/question_subjective_edit.html?id=' + data.id
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+                return false;
+            } else if (obj.event === 'delete') {
+                layer.confirm('真的删除行么?', function (index) {
+                    $.ajax({
+                        type: "post",
+                        url: "/subjective/deleteById",
+                        data: "id=" + data.id,
+                        success: function (res) {
+                            if (res.status == 0) {
+                                alert("删除题目成功");
+                                //重新加载父页面
+                                location.reload();
+                            }
+                        }
+                    })
+
+                    obj.del();
+                    layer.close(index);
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>
+
+
+
+
+

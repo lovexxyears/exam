@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanou.dao.TbExaminationDao">
+    <resultMap id="ExaminationList" type="com.lanou.entity.TbExamination">
+        <id property="id" column="cid"/>
+        <result property="perid" column="perid"/>
+        <result property="major" column="major"/>
+        <result property="level" column="level"/>
+        <result property="seg" column="seg"/>
+        <result property="created" column="created"/>
+        <association property="userInfo" javaType="com.lanou.entity.UserInfo">
+            <id property="id" column="iid"/>
+            <result property="realName" column="realName"/>
+        </association>
+    </resultMap>
+
+    <select id="selectAll" resultMap="ExaminationList">
+        SELECT c.id AS cid,
+               c.major,
+               c.level,
+               c.perid,
+               c.seg,
+               c.created,
+               i.id AS iid,
+               i.realName
+        FROM tb_examination AS c
+                 LEFT JOIN tb_user_info AS i ON c.perid = i.uid
+    </select>
+
+    <select id="selectById" resultType="com.lanou.entity.TbExamination">
+        select *   FROM tb_examination AS c
+where c.id=#{cid}
+    </select>
+
+    <!--    <select id="getQuestionById" resultType="com.lanou.entity.TbQuestionSubjective">-->
+    <!--        SELECT *-->
+    <!--        FROM tb_question_subjective-->
+    <!--        WHERE id = #{id}-->
+    <!--    </select>-->
+
+    <insert id="insertExam">
+        insert into tb_examination (major,
+                                    level,
+                                    perid,
+                                    seg,
+                                    created)
+        values (#{tbExamination.major},
+                #{tbExamination.level},
+                #{tbExamination.perid},
+                #{tbExamination.seg},
+                #{tbExamination.created})
+    </insert>
+    <select id="selectUId" resultType="com.lanou.entity.TbUser">
+        SELECT s.uid as id
+        FROM r_teacher_clazz AS t
+                 LEFT JOIN r_student_clazz AS s ON t.cid = s.cid
+                 LEFT JOIN tb_examination AS e ON e.perid =t.uid
+        WHERE e.perid=#{perid}
+    </select>
+
+    <insert id="insertChoose">
+        insert into r_exam_user_choose(eid, cid, uid,chooseScore)
+        values (#{eid},#{cid},#{uid},#{chooseScore})
+    </insert>
+
+    <insert id="insertCode">
+        insert into r_exam_user_code(eid, cid, uid,codeScore)
+        values (#{eid},#{cid},#{uid},#{codeScore})
+    </insert>
+
+    <insert id="insertJudge">
+        insert into r_exam_user_judge(eid, cid, uid,judgeScore)
+        values (#{eid},#{cid},#{uid},#{judgeScore})
+    </insert>
+
+    <insert id="insertSubjective">
+        insert into r_exam_user_subjective(eid, cid, uid,subjectiveScore)
+        values (#{eid},#{cid},#{uid},#{subjectiveScore})
+    </insert>
+
+    <!--    <update id="updateQuestion">-->
+    <!--        UPDATE tb_question_subjective-->
+    <!--        <set>-->
+    <!--            <if test="major!=null and major!=''">-->
+    <!--                major = #{major},-->
+    <!--            </if>-->
+    <!--            <if test="level!=null and level!=0">-->
+    <!--                level = #{level},-->
+    <!--            </if>-->
+    <!--            <if test="source!=null and source!=''">-->
+    <!--                source = #{source},-->
+    <!--            </if>-->
+    <!--            <if test="seg!=null and seg!=''">-->
+    <!--                seg = #{seg},-->
+    <!--            </if>-->
+    <!--            <if test="title!=null and title!=''">-->
+    <!--                title = #{title},-->
+    <!--            </if>-->
+    <!--        </set>-->
+    <!--        where id=#{id}-->
+    <!--    </update>-->
+
+        <delete id="deleteById">
+            delete
+            from tb_examination
+            where id = #{id};
+        </delete>
+
+        <select id="searchExamination" resultMap="ExaminationList">
+            SELECT c.id AS cid,
+            c.major,
+            c.level,
+            c.perid,
+            c.seg,
+            i.id AS iid,
+            i.realName
+            FROM tb_examination AS c
+            LEFT JOIN tb_user_info AS i ON c.perid = i.uid
+            <where>
+                <if test="major!=null and major!=''">
+                    and c.major like concat('%',#{major},'%')
+                </if>
+                <if test="level!=0">
+                    and c.level like concat('%',#{level},'%')
+                </if>
+            </where>
+        </select>
+
+    <delete id="deleteCHRByEId">
+        delete from r_exam_user_choose   where eid=#{eid}
+    </delete>
+
+    <delete id="deleteCORByEId">
+        delete from r_exam_user_code   where eid=#{eid}
+    </delete>
+
+    <delete id="deleteJRByEId">
+        delete from r_exam_user_jude  where eid=#{eid}
+    </delete>
+
+    <delete id="deleteSRByEId">
+        delete from r_exam_user_subjective   where eid=#{eid}
+    </delete>
+</mapper>
+
+
